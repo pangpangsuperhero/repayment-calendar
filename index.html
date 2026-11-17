@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f7f3">
+<meta name="app-version" content="1.0.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="还款日历">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="一个简单的还款日历。设置每月还款日、标记已还，记录仅保存在当前设备。">
+<title>还款日历</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%23234d40'/%3E%3Cpath d='M15 18h18v15H15zM15 23h18m-14-8v6m10-6v6m-9 7 3 2 5-4' fill='none' stroke='%23dbf2d2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:light;--paper:#f5f7f3;--card:#fff;--ink:#1f3029;--dim:#53645a;--edge:#e2e9e0;--mint:#e7efe4;--green:#234d40;--soft:#f5f8f3;--white:#fff;--shadow:0 6px 24px #22392409;--ease:170ms ease}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-size:15px;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{font-weight:650;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #4b7863;outline-offset:3px}
+button:disabled{opacity:.34;cursor:default}
+button,ol,p,h1,h2,h3{margin:0}
+button{border:0;background:none;padding:0}
+svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;flex-shrink:0}
+.svg-defs{position:absolute;width:0;height:0;overflow:hidden}
+.wrap{max-width:804px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 2px;margin:0 0 16px}
+.brand{display:flex;gap:10px;align-items:center}
+.logo{display:grid;place-items:center;width:40px;height:40px;background:var(--green);color:#e1f1dc;border-radius:13px}
+.logo svg{width:23px;height:23px}
+h1{font-size:20px;font-weight:760;letter-spacing:.005em;line-height:1.25}
+.brand small{display:block;margin-top:3px;color:var(--dim);font-size:11px;font-weight:550}
+.icon-btn{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--edge);background:var(--card);color:var(--green);border-radius:14px;transition:background var(--ease)}
+.icon-btn:active,.light:active,.day:active{background:#e6eee3}
+.hero{position:relative;overflow:hidden;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#244b3e;color:#f4fbf4;border-radius:24px;padding:18px 20px;min-height:132px;margin-bottom:13px}
+.hero::before{content:"";position:absolute;z-index:-1;inset:0;background:radial-gradient(ellipse at 100% 80%,#42705b 0%,transparent 70%)}
+.hero::after{content:"";position:absolute;z-index:-1;right:-45px;top:-72px;width:225px;height:225px;border:1px solid #b9d9ba44;border-radius:50%;box-shadow:0 0 0 18px #b9d9ba12,0 0 0 39px #b9d9ba0d}
+.eyebrow{display:flex;align-items:center;gap:6px;color:#d8e9d5;font-size:12px;font-weight:600}
+.eyebrow svg{width:14px;height:14px}
+.hero h2{font-size:clamp(23px,5.8vw,34px);font-weight:760;letter-spacing:-.035em;margin:5px 0 4px;line-height:1.15}
+.hero p{max-width:37ch;color:#d9e8dc;font-size:12px;line-height:1.5}
+.hero-action{background:#e5f0dc;color:#264a3b;padding:0 12px;min-height:44px;border-radius:13px;white-space:nowrap;font-size:13px}
+.hero-action svg{width:16px;height:16px;margin-right:3px}
+.hero-action:active{background:#cfe5c5}
+.hero-stat{text-align:center;min-width:65px;padding:8px 10px;border:1px solid #deeedd40;background:#f0f9ed12;border-radius:15px;color:#f5fcf4;white-space:nowrap}
+.hero-stat strong{display:block;font-size:26px;line-height:1.12;font-variant-numeric:tabular-nums}
+.hero-stat span{display:block;font-size:11px;color:#deecdf;margin-top:4px}
+.grid-layout{display:grid;gap:13px}
+.panel{background:var(--card);border:1px solid var(--edge);border-radius:22px;box-shadow:var(--shadow);min-width:0}
+.calendar{padding:13px 11px 11px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:3px;margin:0 0 9px;padding:0 2px}
+.cal-head h2{flex:1;font-size:clamp(17px,4.7vw,22px);font-weight:760;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cal-controls{display:flex;align-items:center;gap:4px}
+.light{display:grid;place-items:center;min-width:44px;min-height:44px;background:var(--soft);border-radius:12px;font-size:12px;color:var(--green);transition:background var(--ease)}
+.light svg{width:17px;height:17px}
+.week,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center}
+.week{color:var(--dim);font-size:11px;font-weight:650;line-height:24px;margin-bottom:3px}
+.day{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;min-width:0;min-height:46px;padding:3px 1px 2px;border:1px solid transparent;border-radius:10px;font-size:14px;font-weight:635;font-variant-numeric:tabular-nums;background:#f8faf7}
+.day.empty{background:none;pointer-events:none}
+.day.selected{background:#e6efe3;border-color:#a6bca6}
+.day-num{display:grid;place-items:center;min-width:22px;height:22px;line-height:1;border-radius:8px}
+.day.today .day-num{color:white;background:var(--green)}
+.cal-tag{font-size:9px;font-weight:730;line-height:13px;border-radius:4px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:2px;padding:0 2px;max-width:100%}
+.cal-tag.paid{color:#4e6356;background:#e7eee8}
+.cal-tag .tag-check{display:inline-block;font-size:8px}
+.cal-foot{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;flex-wrap:wrap;border-top:1px solid var(--edge);padding:9px 2px 1px;margin-top:10px;color:var(--dim);font-size:10px}
+.legend{display:flex;gap:4px 9px;flex-wrap:wrap}
+.legend span{white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--tone)}
+.hb{--tone:#33759d;--tag-bg:#e6f1fc;--tag:#255573}
+.mt{--tone:#946423;--tag-bg:#faedce;--tag:#754c14}
+.dy{--tone:#7656a7;--tag-bg:#f0e9fb;--tag:#5d438b}
+.jd{--tone:#ad5054;--tag-bg:#faeaeb;--tag:#904045}
+.cal-tag,.plat-icon{background:var(--tag-bg);color:var(--tag)}
+.agenda{padding:14px 13px 12px}
+.ag-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 7px}
+.ag-head h2{font-size:17px;font-weight:755}
+.ag-head p{color:var(--dim);margin-top:4px;font-size:11px}
+.text-btn{color:var(--green);font-size:12px;padding:0 4px;min-height:44px;white-space:nowrap}
+.text-btn[hidden]{display:none}
+.entry{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 0;border-bottom:1px solid var(--edge)}
+.entry:last-child{border-bottom:0}
+.entry-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.plat-icon{flex:0 0 32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:760}
+.entry-text{flex:1;min-width:0}
+.entry-title{display:block;font-size:13px;font-weight:745;line-height:1.35}
+.entry-sub{display:block;color:var(--dim);font-size:11px;margin-top:3px;line-height:1.3}
+.entry-sub .late{color:#9c433d}
+.entry-sub .done{color:#37674f}
+.entry-actions{display:flex;align-items:center;gap:3px}
+.edit-btn{display:grid;place-items:center;width:44px;height:44px;border-radius:10px;color:var(--green)}
+.edit-btn svg{width:17px;height:17px}
+.paid-btn{padding:0 9px;min-height:44px;border-radius:11px;background:#e8f0e5;color:#2c5544;font-size:11px;white-space:nowrap}
+.paid-btn.checked{background:#f3f6f2;color:#456254}
+.paid-btn.checked svg{width:14px;height:14px;margin-right:2px}
+.empty-state{padding:18px 7px 16px;display:grid;justify-items:center;text-align:center;color:var(--dim);font-size:12px;gap:6px}
+.empty-state .ghost{width:35px;height:35px;border-radius:12px;background:var(--soft);color:var(--green);display:grid;place-items:center}
+.empty-state strong{color:var(--ink);font-size:14px}
+.foot{color:var(--dim);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;font-size:11px;margin-top:15px}
+.foot svg{width:14px;height:14px}
+.update-note{display:flex;align-items:center;justify-content:space-between;gap:9px;background:#e7efe4;color:#254739;border:1px solid #cedfca;border-radius:14px;margin-bottom:12px;padding:5px 5px 5px 12px;font-size:13px;font-weight:650}
+.update-note button{padding:0 12px;min-height:44px;border-radius:10px;white-space:nowrap;font-size:12px}
+.storage-note{border:1px solid #e6c999;background:#fff3da;border-radius:12px;color:#704014;padding:11px 12px;margin-bottom:12px;font-size:13px}
+dialog{padding:0;color:var(--ink);border:1px solid var(--edge);border-radius:24px 24px 0 0;width:min(100%,480px);max-width:none;max-height:calc(100% - 16px);margin:auto auto 0;background:#fff;box-shadow:0 24px 90px #13261932}
+dialog::backdrop{background:#23332b66}
+body:has(dialog[open]){overflow:hidden}
+.sheet{padding:15px 17px calc(17px + env(safe-area-inset-bottom))}
+.handle{height:4px;width:29px;border-radius:10px;background:#dce5db;margin:0 auto 10px}
+.sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:13px}
+.sheet-head h2{font-size:21px;margin:5px 0 4px}
+.sheet-head p,.hint{font-size:12px;color:var(--dim);line-height:1.55}
+.sheet .icon-btn{width:44px;height:44px}
+.sheet-body{display:grid;gap:12px}
+.settings-group h3{font-size:12px;color:var(--dim);margin:0 0 6px}
+.setting-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:1px solid var(--edge);border-radius:13px;margin-bottom:5px;padding:6px 9px;min-height:46px}
+.setting-row:last-child{margin-bottom:0}
+.setting-row svg{width:16px;height:16px;color:var(--dim)}
+.setting-row .end{display:flex;align-items:center;gap:5px;color:var(--dim);font-size:12px;font-weight:620;white-space:nowrap}
+.settings-actions,.modal-actions{display:flex;flex-wrap:wrap;gap:7px}
+.settings-actions button,.modal-actions button{flex:1 1 auto;display:inline-flex;justify-content:center;align-items:center;gap:5px;padding:0 12px;min-height:46px;border-radius:12px;font-size:13px}
+.settings-actions svg{width:16px;height:16px}
+.primary{background:var(--green);color:#fff}
+.secondary{background:var(--soft);color:var(--green);border:1px solid var(--edge)}
+.danger{color:#963c36;background:#fcf0ee}
+label.field{display:grid;gap:6px;font-size:13px;font-weight:710}
+select{appearance:auto;background:#f5f8f3;border:1px solid var(--edge);border-radius:12px;min-height:48px;width:100%;padding:0 12px;font-size:16px}
+.toast{position:fixed;z-index:3;bottom:calc(16px + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,10px);visibility:hidden;opacity:0;transition:opacity var(--ease),transform var(--ease),visibility var(--ease);max-width:calc(100% - 28px);width:max-content;padding:10px 15px;border-radius:12px;background:#29483b;color:#fff;box-shadow:0 8px 22px #203e2e2b;text-align:center;font-size:13px;pointer-events:none}
+.toast.show{visibility:visible;opacity:1;transform:translate(-50%,0)}
+[hidden]{display:none!important}
+@media(min-width:630px){
+ .wrap{padding-top:34px;padding-inline:20px}
+ .top{margin-bottom:19px}
+ .hero{padding:21px 25px;margin-bottom:17px;min-height:142px}
+ .grid-layout{grid-template-columns:minmax(340px,1.3fr) minmax(250px,1fr);align-items:start;gap:15px}
+ .calendar{padding:15px 13px 12px}
+ .agenda{padding:15px 14px}
+ .day{min-height:50px}
+ dialog{margin:auto;border-radius:23px}
+ .handle{display:none}
+}
+@media(max-width:350px){
+ .wrap{padding-inline:9px}
+ .hero{padding-inline:13px}
+ .calendar{padding-inline:7px}
+ .cal-tag{font-size:8px;padding-inline:1px;gap:1px}
+ .cal-tag .tag-check{font-size:7px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+</style>
+</head>
+<body>
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5v4m8-4v4m-7 7.7 2 2 4-4"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.4" fill="white"/><circle cx="15" cy="17" r="2.4" fill="white"/></symbol>
+<symbol id="i-prev" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+<symbol id="i-next" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="m14.5 5.5 4 4m-13 9 1-5 9-9a2.8 2.8 0 0 1 4 4l-9 9-5 1Z"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 4v3"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+<symbol id="i-in" viewBox="0 0 24 24"><path d="M12 16V4m-4 4 4-4 4 4M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+</svg>
+<main class="wrap">
+<header class="top">
+ <div class="brand"><span class="logo" aria-hidden="true"><svg><use href="#i-calendar"/></svg></span><div><h1>还款日历</h1><small>每月还款，一目了然</small></div></div>
+ <button type="button" id="settings" class="icon-btn" aria-label="打开设置" title="设置"><svg aria-hidden="true"><use href="#i-settings"/></svg></button>
+</header>
+<noscript>请启用 JavaScript 后使用还款日历。</noscript>
+<p id="storage-note" class="storage-note" role="alert" hidden></p>
+<div class="update-note" id="update-note" hidden><span role="status">还款日历有新版本</span><button type="button" id="apply-update" class="primary">立即更新</button></div>
+<section class="hero" id="hero" aria-label="还款概览"></section>
+<div class="grid-layout">
+ <section class="calendar panel" aria-label="月历">
+  <div class="cal-head"><h2 id="month" aria-live="polite"></h2><div class="cal-controls"><button type="button" id="prev" class="light" aria-label="上个月"><svg aria-hidden="true"><use href="#i-prev"/></svg></button><button type="button" id="today" class="light">今天</button><button type="button" id="next" class="light" aria-label="下个月"><svg aria-hidden="true"><use href="#i-next"/></svg></button></div></div>
+  <div class="week" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+  <div class="days" id="days"></div>
+  <div class="cal-foot"><div class="legend" id="legend"></div><span>✓ 已还</span></div>
+ </section>
+ <section class="agenda panel" aria-labelledby="agenda-title">
+  <div class="ag-head"><div><h2 id="agenda-title">本月计划</h2><p id="agenda-sub" aria-live="polite"></p></div><button type="button" class="text-btn" id="show-month" hidden>查看整月</button></div>
+  <div id="agenda-list"></div>
+ </section>
+</div>
+<footer class="foot"><svg aria-hidden="true"><use href="#i-lock"/></svg> 记录仅存当前设备 · 不连接账单账户 <span id="app-version"></span></footer>
+</main>
+<dialog id="sheet" aria-labelledby="sheet-title"></dialog>
+<input type="file" id="backup-file" accept=".json,application/json" hidden>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(() => {
+"use strict";
+const platforms = [
+ {id:"hb",name:"花呗",short:"花呗",icon:"花"},
+ {id:"mt",name:"美团月付",short:"美团",icon:"美"},
+ {id:"dy",name:"抖音月付",short:"抖音",icon:"抖"},
+ {id:"jd",name:"京东白条",short:"白条",icon:"白"}
+];
+const appTag = "repayment-calendar";
+const storageKey = "repayment-calendar:state:v1:" + location.pathname.replace(/index\.html$/, "").replace(/\/$/, "");
+const $ = id => document.getElementById(id);
+const svg = name => '<svg aria-hidden="true"><use href="#i-' + name + '"/></svg>';
+const own = (o, k) => Object.hasOwn(o, k);
+const pad = value => String(value).padStart(2,"0");
+const toMonth = date => date.getFullYear() + "-" + pad(date.getMonth()+1);
+const monthKey = key => /^(19\d{2}|20\d{2}|21\d{2})-(0[1-9]|1[0-2])$/.test(key);
+const monthDate = (key, day=1) => { const [y,m] = key.split("-").map(Number); return new Date(y,m-1,day,12); };
+const monthSize = key => {const d = monthDate(key);return new Date(d.getFullYear(),d.getMonth()+1,0,12).getDate();};
+const shiftMonth = (key,delta) => { const d = monthDate(key);d.setMonth(d.getMonth()+delta);return toMonth(d); };
+const monthLabel = key => {const d=monthDate(key);return d.getFullYear()+"年"+(d.getMonth()+1)+"月";};
+const daysDiff = (left, right) => Math.round((Date.UTC(left.getFullYear(),left.getMonth(),left.getDate()) - Date.UTC(right.getFullYear(),right.getMonth(),right.getDate()))/86400000);
+const dateDay = n => Number.isInteger(n) && n >= 1 && n <= 31;
+const isObj = o => !!o && typeof o === "object" && !Array.isArray(o);
+const blank = () => ({app:appTag,version:1,rules:{},months:{}});
+function ruleAt(s,id,key){
+ const rows=s.rules[id] || [];
+ for(let i=rows.length-1;i>=0;i--) if(rows[i].from<=key) return rows[i].day;
+ return null;
+}
+function backupState(input){
+ if(!isObj(input) || input.app!==appTag || input.version!==1 || !isObj(input.rules) || !isObj(input.months)) throw new Error("backup");
+ const result=blank();
+ const validId = id => platforms.some(p=>p.id===id);
+ for(const [id,rows] of Object.entries(input.rules)){
+  if(!validId(id) || !Array.isArray(rows) || rows.length>3600) throw new Error("rule");
+  let last="";
+  result.rules[id] = rows.map(row => {
+   if(!isObj(row) || typeof row.from!=="string" || !monthKey(row.from) || row.from<=last || !(row.day===null || dateDay(row.day))) throw new Error("day");
+   last=row.from;
+   return {from:row.from,day:row.day};
+  });
+ }
+ for(const [key,records] of Object.entries(input.months)){
+  if(!monthKey(key) || !isObj(records)) throw new Error("month");
+  const map={};
+  for(const [id,record] of Object.entries(records)){
+   if(!validId(id) || !isObj(record)) throw new Error("record");
+   const item={};
+   if(own(record,"override")){
+    if(!(record.override===null || (dateDay(record.override) && record.override<=monthSize(key)))) throw new Error("override");
+    item.override=record.override;
+   }
+   if(own(record,"paidDay")){
+    if(!dateDay(record.paidDay) || record.paidDay>monthSize(key) || item.override===null || (item.override!==undefined && item.override!==record.paidDay)) throw new Error("paid");
+    item.paidDay=record.paidDay;
+   }
+   if(Object.keys(item).length) map[id]=item;
+  }
+  if(Object.keys(map).length) result.months[key]=map;
+ }
+ return result;
+}
+function monthEntries(s,key){
+ const limit=monthSize(key);
+ return platforms.flatMap(p=>{
+  const item=s.months[key]?.[p.id] || {};
+  const base=ruleAt(s,p.id,key);
+  let day=item.paidDay ?? (own(item,"override") ? item.override : base);
+  if(day===null && item.override!==null) return [];
+  if(day!==null) day=Math.min(day,limit);
+  return [{...p,day,paid:dateDay(item.paidDay),changed:own(item,"override")}];
+ }).sort((a,b)=>(a.day??32)-(b.day??32));
+}
+function setRule(s,id,key,day){
+ const rows=(s.rules[id] || []).filter(r=>r.from!==key);
+ if(ruleAt({rules:{[id]:rows}},id,key)!==day) rows.push({from:key,day});
+ rows.sort((a,b)=>a.from.localeCompare(b.from));
+ if(rows.length) s.rules[id]=rows; else delete s.rules[id];
+}
+function saveRecord(s,key,id,record){
+ if(Object.keys(record).length){
+  s.months[key] ||= {};
+  s.months[key][id]=record;
+ } else if(s.months[key]){
+  delete s.months[key][id];
+  if(!Object.keys(s.months[key]).length) delete s.months[key];
+ }
+}
+function changeDate(s,key,id,day){
+ const record={...s.months[key]?.[id]};
+ if(day===undefined){
+  delete record.override;
+  if(own(record,"paidDay")){
+   const base=ruleAt(s,id,key);
+   if(base!==null) record.paidDay=Math.min(base,monthSize(key));
+  }
+ } else{
+  record.override=day;
+  if(day===null) delete record.paidDay;
+  else if(own(record,"paidDay")) record.paidDay=day;
+ }
+ saveRecord(s,key,id,record);
+}
+function markPaid(s,key,id,day){
+ const record={...s.months[key]?.[id]};
+ if(own(record,"paidDay")) delete record.paidDay;
+ else record.paidDay=day;
+ saveRecord(s,key,id,record);
+}
+
+let state=blank(), corrupt=false, inMemory=false;
+try {
+ const raw=localStorage.getItem(storageKey);
+ if(raw!==null){
+  try { state=backupState(JSON.parse(raw)); }
+  catch { corrupt=true; }
+ }
+} catch { inMemory=true; }
+let month=toMonth(new Date()), selected=null, toastTimer, sheetReturn=null;
+const sheet=$("sheet");
+const todayKey = () => toMonth(new Date());
+function storageNote(){
+ $("storage-note").hidden=!(inMemory||corrupt);
+ $("storage-note").textContent=corrupt
+  ? "本机的旧记录无法读取。你的新操作暂时不会覆盖旧数据，请及时导出，或用有效备份恢复。"
+  : "当前无法写入本机存储。请在关闭页面前导出备份。";
+}
+function persist(){
+ if(corrupt) return;
+ try { localStorage.setItem(storageKey,JSON.stringify(state));inMemory=false; }
+ catch { inMemory=true; }
+ storageNote();
+}
+function notify(message){
+ const toast=$("toast");
+ clearTimeout(toastTimer);
+ toast.textContent=message;
+ toast.classList.add("show");
+ toastTimer=setTimeout(()=>toast.classList.remove("show"),2500);
+}
+function renderHero(entries,key,now){
+ const active=entries.filter(e=>e.day!==null);
+ const waiting=active.filter(e=>!e.paid);
+ const current=key===toMonth(now);
+ const future=waiting.find(e=>daysDiff(monthDate(key,e.day),now)>=0);
+ const overdue=waiting.filter(e=>daysDiff(monthDate(key,e.day),now)<0).length;
+ let label=current?"本月概览":(monthDate(key).getMonth()+1)+" 月概览";
+ let title,sub,action="";
+ if(!active.length){
+  if(entries.length){
+   title="这个月没有账单";sub="设为无账单只影响这个月";
+  } else if(!Object.values(state.rules).some(rows=>rows.some(r=>r.day!==null))){
+   title="先设一个还款日";sub="设置一次，之后每月自动显示";
+   action='<button type="button" class="hero-action" data-action="settings">'+svg("plus")+'设置平台</button>';
+  }else{
+   title="这个月没有安排";sub="可在设置中查看当前的每月还款日";
+  }
+ } else if(!waiting.length){
+  title="本月已全部还清";sub="已标记 "+active.length+" 项";
+ } else if(overdue){
+  title=overdue+" 项已过还款日";
+  sub=future?"下一个 · "+future.name+" "+(monthDate(key).getMonth()+1)+"月"+future.day+"日":"请查看下方还没标记「已还」的记录";
+ } else {
+  const diff=daysDiff(monthDate(key,future.day),now);
+  title=diff===0?"今天要还":diff===1?"明天要还":diff<=7?diff+" 天后要还":"下一笔还款";
+  sub=waiting.filter(e=>e.day===future.day).map(e=>e.name).join("、")+" · "+(monthDate(key).getMonth()+1)+"月"+future.day+"日";
+ }
+ if(active.length) action='<div class="hero-stat"><strong>'+waiting.length+'</strong><span>待还</span></div>';
+ $("hero").innerHTML='<div><div class="eyebrow">'+svg("calendar")+label+'</div><h2>'+title+'</h2><p>'+sub+'</p></div>'+action;
+}
+function renderCalendar(entries,key,now){
+ $("month").textContent=monthLabel(key);
+ $("prev").disabled=!monthKey(shiftMonth(key,-1));
+ $("next").disabled=!monthKey(shiftMonth(key,1));
+ const head=(monthDate(key).getDay()+6)%7, max=monthSize(key);
+ let html='<span class="day empty" aria-hidden="true"></span>'.repeat(head);
+ for(let day=1;day<=max;day++){
+  const events=entries.filter(e=>e.day===day).sort((a,b)=>Number(a.paid)-Number(b.paid));
+  const current=key===toMonth(now) && day===now.getDate();
+  const focus=selected===day;
+  let tag="", description=monthLabel(key)+day+"日";
+  if(events.length){
+   const first=events[0];
+   const extra=events.length>1?"+"+(events.length-1):first.paid?"✓":"";
+   tag='<span aria-hidden="true" class="cal-tag '+first.id+(first.paid?" paid":"")+'">'+first.short+(extra?'<span class="tag-check">'+extra+'</span>':'')+'</span>';
+   description+="，"+events.map(e=>e.name+(e.paid?"已还":"待还")).join("、");
+  }
+  html+='<button type="button" class="day'+(current?' today':'')+(focus?' selected':'')+'" data-action="day" data-day="'+day+'" aria-label="'+description+'" aria-pressed="'+focus+'"'+(current?' aria-current="date"':'')+'><span class="day-num">'+day+'</span>'+tag+'</button>';
+ }
+ html+='<span class="day empty" aria-hidden="true"></span>'.repeat((7-(head+max)%7)%7);
+ $("days").innerHTML=html;
+}
+function renderAgenda(entries,key,now){
+ const d=monthDate(key), active=entries.filter(e=>e.day!==null);
+ const filtered=selected===null?entries:active.filter(e=>e.day===selected);
+ $("agenda-title").textContent=selected===null?"本月计划":(d.getMonth()+1)+"月"+selected+"日"+(key===toMonth(now)&&selected===now.getDate()?" · 今天":"");
+ $("agenda-sub").textContent=selected===null?"共 "+active.length+" 项 · 已还 "+active.filter(e=>e.paid).length+" 项":"当天 "+filtered.length+" 项";
+ $("show-month").hidden=selected===null;
+ $("agenda-list").innerHTML=filtered.map(e=>{
+  const date=e.day===null?"本月无账单":(d.getMonth()+1)+"月"+e.day+"日";
+  const overdue=e.day!==null && daysDiff(monthDate(key,e.day),now)<0;
+  const status=e.day===null?"":e.paid?' <span class="done">· 已还</span>':overdue?' <span class="late">· 已过还款日</span>':' · 待还';
+  const toggle=e.day===null?"":'<button type="button" class="paid-btn'+(e.paid?' checked':'')+'" data-action="paid" data-id="'+e.id+'" aria-label="'+(e.paid?'撤销':'标记')+e.name+'已还" title="'+(e.paid?'再次点击可撤销':'标记已还')+'">'+(e.paid?svg("check")+"已还":"标记已还")+'</button>';
+  return '<div class="entry"><div class="entry-info"><span class="plat-icon '+e.id+'" aria-hidden="true">'+e.icon+'</span><div class="entry-text"><span class="entry-title">'+e.name+'</span><span class="entry-sub">'+date+status+'</span></div></div><div class="entry-actions"><button type="button" class="edit-btn" data-action="change" data-id="'+e.id+'" aria-label="调整'+e.name+'本月安排" title="调整本月安排">'+svg("edit")+'</button>'+toggle+'</div></div>';
+ }).join("") || '<div class="empty-state"><span class="ghost">'+svg("calendar")+'</span><strong>'+(selected===null?'还没有还款记录':'当天没有还款安排')+'</strong><span>'+(selected===null?'设置每月还款日后，会自动显示在日历上。':'可以继续点选日历上的其他日期。')+'</span></div>';
+}
+function render(){
+ const now=new Date(), entries=monthEntries(state,month);
+ renderHero(entries,month,now);renderCalendar(entries,month,now);renderAgenda(entries,month,now);
+}
+function closeSheet(){if(sheet.open) sheet.close();}
+function openSheet(title,desc,body,focusBack){
+ if(!sheet.open) sheetReturn=focusBack || document.activeElement;
+ sheet.innerHTML='<div class="sheet"><div class="handle" aria-hidden="true"></div><div class="sheet-head"><div><h2 id="sheet-title">'+title+'</h2><p>'+desc+'</p></div><button type="button" class="icon-btn" data-action="close" aria-label="关闭" autofocus>'+svg("close")+'</button></div>'+body+'</div>';
+ if(!sheet.open) sheet.showModal();
+ else sheet.querySelector('[data-action="close"]').focus({preventScroll:true});
+}
+function startSettings(focusBack){
+ const key=todayKey();
+ const rows=platforms.map(p=>{
+  const day=ruleAt(state,p.id,key);
+  return '<button type="button" class="setting-row" data-action="fixed" data-id="'+p.id+'"><span class="entry-info"><span class="plat-icon '+p.id+'" aria-hidden="true">'+p.icon+'</span><span class="entry-title">'+p.name+'</span></span><span class="end">'+(day===null?'未设置':'每月 '+day+' 日')+svg("next")+'</span></button>';
+ }).join("");
+ openSheet("设置","每个平台只需设一次。临时改期，请点本月计划里的铅笔。",'<div class="sheet-body"><div class="settings-group"><h3>每月固定还款日</h3>'+rows+'</div><div class="settings-group"><h3>本地备份</h3><div class="settings-actions"><button type="button" class="secondary" data-action="export">'+svg("out")+'导出备份</button><button type="button" class="secondary" data-action="import">'+svg("in")+'从备份恢复</button></div></div></div>',focusBack);
+}
+function options(max,selectedDay){
+ return Array.from({length:max},(_,i)=>'<option value="'+(i+1)+'"'+(selectedDay===i+1?' selected':'')+'>'+(i+1)+' 日</option>').join("");
+}
+function openFixed(p){
+ const key=todayKey(), day=ruleAt(state,p.id,key);
+ openSheet(p.name+" · 固定还款日","从 "+monthLabel(key)+" 起生效。过去月份和已标记「已还」的日期不变。",'<form id="edit-form" class="sheet-body"><label class="field" for="day-select">每月哪一天还款<select id="day-select"><option value=""'+(day===null?' selected':'')+'>不设固定还款日</option>'+options(31,day)+'</select></label><p class="hint">遇到没有该日期的月份，会显示在当月最后一天。如有不同，可单独调整。</p><div class="modal-actions"><button type="button" class="secondary" data-action="settings">返回</button><button type="submit" class="primary">保存</button></div></form>');
+ $("edit-form").addEventListener("submit",e=>{
+  e.preventDefault();
+  const day=$("day-select").value;
+  setRule(state,p.id,key,day?Number(day):null);
+  persist();render();startSettings();
+ });
+}
+function openChange(p,focusBack){
+ const key=month, e=monthEntries(state,key).find(x=>x.id===p.id);
+ if(!e) return;
+ const base=ruleAt(state,p.id,key);
+ const effectiveBase=base===null?null:Math.min(base,monthSize(key));
+ const currentOption=e.changed?(e.day===null?'skip':String(e.day)):'default';
+ const startDay=e.day;
+ openSheet(p.name+" · "+monthLabel(key),"只影响这个月，不会改动其他月份。",'<form id="edit-form" class="sheet-body"><label class="field" for="day-select">本月还款日<select id="day-select"><option value="default"'+(currentOption==='default'?' selected':'')+'>用固定日'+(effectiveBase===null?'（未设置）':'（'+effectiveBase+' 日）')+'</option>'+(!e.paid?'<option value="skip"'+(currentOption==='skip'?' selected':'')+'>本月无账单</option>':'')+options(monthSize(key), e.changed?e.day:null)+'</select></label><div class="modal-actions"><button type="button" class="secondary" data-action="close">取消</button><button type="submit" class="primary">保存</button></div></form>',focusBack);
+ $("edit-form").addEventListener("submit",ev=>{
+  ev.preventDefault();
+  const val=$("day-select").value;
+  changeDate(state,key,p.id,val==="default"?undefined:val==="skip"?null:Number(val));
+  if(startDay===selected && selected!==null) selected=monthEntries(state,key).find(x=>x.id===p.id)?.day ?? null;
+  persist();closeSheet();render();notify("本月安排已更新");
+ });
+}
+function exportBackup(){
+ const now=new Date();
+ const filename="repayment-calendar-"+toMonth(now)+"-"+pad(now.getDate())+".json";
+ const a=document.createElement("a");
+ const blob=new Blob([JSON.stringify({...state,exportedAt:now.toISOString()},null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob);
+ a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+ closeSheet();
+ notify("备份已导出");
+}
+async function stageImport(file){
+ let restored;
+ try {
+  if(file.size>5*1024*1024) throw new Error("size");
+  restored=backupState(JSON.parse((await file.text()).replace(/^\uFEFF/,"")));
+ } catch {
+  openSheet("无法读取备份","请选择由还款日历导出的有效 JSON 文件，现有记录没有被改动。",'<div class="modal-actions"><button type="button" data-action="settings" class="secondary">返回设置</button></div>');
+  return;
+ }
+ const count=platforms.filter(p=>ruleAt(restored,p.id,todayKey())!==null).length;
+ openSheet("恢复这份备份？","备份中有 "+count+" 个平台设置了当前还款日。恢复将替换本机的全部记录。",'<div class="modal-actions"><button type="button" data-action="settings" class="secondary">取消</button><button type="button" id="restore" class="primary">确认恢复</button></div>');
+ $("restore").addEventListener("click",()=>{
+  state=restored;corrupt=false;persist();selected=null;closeSheet();render();
+  notify(inMemory?"已读取备份，但本机无法保存":"备份已恢复");
+ });
+}
+
+$("legend").innerHTML=platforms.map(p=>'<span><i class="dot '+p.id+'" aria-hidden="true"></i>'+p.short+'</span>').join("");
+$("prev").addEventListener("click",()=>{month=shiftMonth(month,-1);selected=null;render();});
+$("next").addEventListener("click",()=>{month=shiftMonth(month,1);selected=null;render();});
+$("today").addEventListener("click",()=>{const now=new Date();month=toMonth(now);selected=now.getDate();render();});
+$("show-month").addEventListener("click",()=>{selected=null;render();$("agenda-title").setAttribute("tabindex","-1");$("agenda-title").focus({preventScroll:true});});
+$("settings").addEventListener("click",e=>startSettings(e.currentTarget));
+sheet.addEventListener("close",()=>{
+ if(sheet.open) return;
+ const back=sheetReturn;sheetReturn=null;
+ if(back?.isConnected) back.focus({preventScroll:true});
+ else if(back?.dataset.id){
+  const edit=$("agenda-list").querySelector('[data-action="change"][data-id="'+back.dataset.id+'"]');
+  (edit || $("settings")).focus({preventScroll:true});
+ } else $("settings").focus({preventScroll:true});
+});
+sheet.addEventListener("click",e=>{if(e.target===sheet) closeSheet();});
+$("backup-file").addEventListener("change",e=>{
+ const file=e.target.files[0];e.target.value="";
+ if(file) stageImport(file);
+});
+document.addEventListener("click",e=>{
+ const button=e.target.closest("button[data-action]");
+ if(!button) return;
+ const p=platforms.find(x=>x.id===button.dataset.id);
+ switch(button.dataset.action){
+ case "day":{
+  const day=Number(button.dataset.day);
+  selected=selected===day?null:day;
+  render();
+  $("days").querySelector('[data-day="'+day+'"]').focus({preventScroll:true});
+  break;
+ }
+ case "settings":startSettings(button);break;
+ case "fixed":openFixed(p);break;
+ case "change":openChange(p,button);break;
+ case "close":closeSheet();break;
+ case "export":exportBackup();break;
+ case "import":$("backup-file").click();break;
+ case "paid":{
+  const row=monthEntries(state,month).find(x=>x.id===p.id);
+  if(!row || row.day===null) return;
+  markPaid(state,month,p.id,row.day);
+  persist();render();
+  $("agenda-list").querySelector('[data-action="paid"][data-id="'+p.id+'"]')?.focus({preventScroll:true});
+  notify(row.paid?"已撤销「已还」":p.name+"已标记为已还");
+  break;
+ }
+ }
+});
+let lastToday=new Date().toDateString();
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden) return;
+ const now=new Date();
+ if(now.toDateString()!==lastToday){
+  if(month===toMonth(new Date(lastToday)) && month!==toMonth(now)){month=toMonth(now);selected=null;}
+  lastToday=now.toDateString();render();
+ }
+});
+storageNote();render();
+
+const appVersion = document.querySelector('meta[name="app-version"]').content;
+$("app-version").textContent = "· v" + appVersion;
+if ("serviceWorker" in navigator && window.isSecureContext) {
+ const workers = navigator.serviceWorker;
+ const apply = $("apply-update");
+ let registration, pendingReload = false, reloading = false;
+ let hasController = Boolean(workers.controller), lastCheck = 0;
+ const showUpdate = () => { $("update-note").hidden = false; };
+ const reload = () => { if (!reloading) { reloading = true; location.reload(); } };
+ workers.addEventListener("controllerchange", () => {
+  if (!workers.controller) return;
+  if (pendingReload) reload();
+  else if (hasController) showUpdate();
+  hasController = true;
+ });
+ const checkForUpdate = () => {
+  if (!registration || navigator.onLine === false || Date.now()-lastCheck < 30000) return;
+  lastCheck = Date.now();
+  registration.update().catch(() => {});
+ };
+ workers.register("./sw.js",{scope:"./",updateViaCache:"none"}).then(reg => {
+  registration = reg;
+  if (reg.waiting && workers.controller) showUpdate();
+  reg.addEventListener("updatefound", () => {
+   const installing = reg.installing;
+   if (!installing) return;
+   installing.addEventListener("statechange", () => {
+    if (installing.state === "installed" && workers.controller) showUpdate();
+   });
+  });
+  checkForUpdate();
+ }).catch(() => {});
+ apply.addEventListener("click", () => {
+  if (!registration?.waiting) { reload(); return; }
+  pendingReload = true;
+  apply.disabled = true;
+  apply.textContent = "正在更新…";
+  registration.waiting.postMessage({type:"APPLY_UPDATE"});
+  setTimeout(() => {
+   if (reloading) return;
+   pendingReload = false;
+   apply.disabled = false;
+   apply.textContent = "立即更新";
+  }, 6000);
+ });
+ document.addEventListener("visibilitychange", () => { if (!document.hidden) checkForUpdate(); });
+ window.addEventListener("online", checkForUpdate);
+}
+})();
+</script>
+</body>
+</html>
